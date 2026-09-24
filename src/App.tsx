@@ -172,6 +172,38 @@ export default function App() {
           <p className="text-slate-400 text-[11px]">
             MGMT 6110 Human-AI Collaboration at SMU • Individual Problem Set 1
           </p>
+          <p className="text-slate-500 text-[11px] leading-relaxed max-w-3xl mx-auto pt-2 border-t border-slate-100">
+            This page uses Microsoft Clarity and Disqus, which use cookies to record how visitors
+            use the site and to host comments. By using this page you agree that we and Microsoft
+            may collect and use this data. See the{' '}
+            <a
+              href="https://www.microsoft.com/privacy/privacystatement"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-slate-700 hover:text-slate-900"
+            >
+              Microsoft Privacy Statement
+            </a>
+            , the{' '}
+            <a
+              href="https://disqus.com/privacy-policy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-slate-700 hover:text-slate-900"
+            >
+              Disqus privacy policy
+            </a>{' '}
+            and the{' '}
+            <a
+              href="https://disqus.com/data-sharing-settings/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-slate-700 hover:text-slate-900"
+            >
+              Disqus data sharing settings
+            </a>
+            .
+          </p>
         </div>
       </footer>
     </div>

@@ -11,7 +11,7 @@ declare global {
 }
 
 const DISQUS_SHORTNAME = 'hdb-resale-price-explorer';
-const PAGE_URL = 'https://problemset3-kevin.vercel.app/';
+const PAGE_URL = 'https://problemset3new.vercel.app';
 const PAGE_IDENTIFIER = 'home';
 
 interface Reaction {

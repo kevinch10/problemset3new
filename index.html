@@ -9,41 +9,6 @@
     <meta property="og:description" content="Compare HDB resale flat prices by town and flat type in Singapore from 2017 until present time with price trends, two-town comparisons, and transaction details." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <script>
-      // Global error shield to prevent cross-origin third-party scripts (e.g., Disqus embed)
-      // from generating unhandled "Script error." in iframe or sandboxed environments
-      window.addEventListener(
-        'error',
-        function (event) {
-          if (
-            event.message === 'Script error.' ||
-            (event.filename &&
-              (event.filename.indexOf('disqus') !== -1 ||
-                event.filename.indexOf('disquscdn') !== -1))
-          ) {
-            event.preventDefault();
-            if (event.stopImmediatePropagation) {
-              event.stopImmediatePropagation();
-            }
-            return true;
-          }
-        },
-        true
-      );
-
-      window.addEventListener('unhandledrejection', function (event) {
-        var reason = event.reason ? String(event.reason) : '';
-        if (
-          reason.indexOf('disqus') !== -1 ||
-          reason.indexOf('Script error') !== -1
-        ) {
-          event.preventDefault();
-          if (event.stopImmediatePropagation) {
-            event.stopImmediatePropagation();
-          }
-        }
-      });
-    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -386,5 +386,137 @@ change). Commit c429abc.
 
 ## Blind-arbiter exchanges
 
-[PASTE EACH BLIND-ARBITER PROMPT AND ITS ANSWER HERE: the loading counter
-(me 3, ST 2) and the empty-versus-failure finding (me 3, SS 1).]
+Each prompt was pasted into a fresh chat that had seen none of this work. The
+prompts leave out who wrote each description and every severity anyone
+gave. In prompt 2, Evaluator A is my own finding 9 and Evaluator B is SS's
+finding 5; the arbiter was not told this.
+
+### Finding: an empty result that cannot be told apart from a failure (me 3, SS 1)
+
+Prompt 2, as sent:
+
+```
+ROLE: You are an independent usability arbiter. Two evaluators described the
+same problem in a web product and rated its severity differently. You have
+not seen their ratings and will not be told them. Rate the problem yourself,
+from the evidence below.
+
+CONTEXT:
+- Product: HDB Resale Price Explorer, https://problemset3new.vercel.app/
+- Who it is for, and what it does for them: a Singapore homebuyer or renter
+  uses it to compare HDB resale transactions by town and flat type and
+  understand how resale prices differ and have changed since 2017.
+- Version being rated: the one the evaluators reviewed on 27 September 2026.
+  Rate that version, not the current one.
+
+- Evaluator A wrote: "I searched for a case that produced no useful result
+  and considered what would happen if the external data source failed. A
+  generic empty or error state does not clearly tell the visitor whether
+  there are genuinely no transactions, the connection failed, or the
+  upstream service is unavailable." Heuristic named: 9, Help Users
+  Recognize, Diagnose, and Recover from Errors. Screen or system: both.
+- Evaluator B wrote: "I asked the route for a town that does not exist
+  (/api/hdb?town=ATLANTIS&flat_type=4+ROOM). It answered 200 with
+  {"ok":true,"status":"ok","total":0}, the same answer a real town with no
+  sales would get." Heuristic named: 9. Screen or system: system, because the
+  route reports a wrong input as a success.
+
+- Facts about the reviewed version:
+  1. /api/hdb?town=ATLANTIS&flat_type=4+ROOM returns HTTP 200 with
+     {"ok":true,"status":"ok","total":0,"returned":0,"records":[]}.
+     Checked on 29 September 2026.
+  2. The page's town menu offers only the 26 real towns and "All Towns
+     across Singapore". A visitor reaches a non-existent town only through
+     an edited or hand-built address to the data route.
+  3. The page shows a different message for each failure it is told about:
+     - when data.gov.sg refuses the request: "data.gov.sg refused the request
+       with HTTP status N: …", with a Retry Request button;
+     - when data.gov.sg cannot be reached: a separate "unreachable" message,
+       with a Retry Connection button;
+     - when the filters match nothing: "No HDB resale transactions were found
+       matching your selected criteria.", with a "Reset Filters to Tampines"
+       button.
+  4. A search that matches nothing shows "No results found." with clickable
+     suggestions, for example "Clear search text and view all flats".
+  5. In the data route, if a later page of a multi-page answer fails
+     upstream, the route stops and returns the records it already has as a
+     success, with no sign that part of the answer is missing.
+  6. No evaluator saw an actual upstream failure while reviewing. The health
+     check (/api/health) answered successfully throughout.
+
+GOAL:
+1. Say which parts of each evaluator's description the facts support, and
+   which they do not. Say whether Evaluator A's description rests on
+   something observed or something imagined.
+2. Rate the problem's severity on this scale:
+   0 = not a usability problem;
+   1 = cosmetic, fix only if there is time;
+   2 = minor, low priority;
+   3 = major, important to fix, high priority;
+   4 = catastrophe, must be fixed before release.
+3. Name the main factor behind your rating (frequency, impact or
+   persistence) and explain it in two or three sentences, from the user's
+   point of view.
+4. Say what single piece of evidence would move your rating up or down by
+   one point.
+
+OUTPUT: The four answers above as a numbered list, with your rating on its
+own line as "Severity: N". Then stop.
+
+GUARDRAILS: Do not guess what the evaluators rated. Do not average two
+imagined ratings. Rate only what the facts show. Where a description claims
+something the facts do not support, say so and leave it out of your rating.
+```
+
+Prompt 2 was run twice, in two separate fresh chats, 29 September 2026.
+Both runs rated it 1.
+
+**Run 1, answer:**
+
+```
+What the facts support
+Evaluator A: mostly not supported, and it rests on something imagined.
+What A observed is a search that produced no useful result. Fact 4 says that case shows "No results found." with clickable suggestions such as "Clear search text and view all flats". That is not a generic state.
+The rest of A's description is hypothetical, in A's own words "considered what would happen if the external data source failed". Fact 6 says no evaluator saw an upstream failure.
+The claim that the page cannot tell the visitor whether there are no transactions, the connection failed, or the service is unavailable is contradicted by fact 3. The page has separate messages for a refused request, an unreachable source and a filter match with nothing, and each has its own recovery button. I leave the "generic state" claim out of my rating.
+"Screen or system: both" is not supported. The screen side is contradicted, as above.
+Evaluator B: the observation is supported, but the harm is limited.
+Fact 1 confirms the 200 response with ok: true and total: 0 for a town that doesn't exist.
+Fact 2 shows that a visitor reaches this only by editing or hand-building an address to the data route. The page's town menu offers only the 26 real towns and "All Towns".
+B's comparison to "a real town with no sales" is plausible. Fact 1 does not show what such a town returns.
+Heuristic 9 is a weak fit. It concerns error messages shown to users, and no user sees this response through the page.
+Outside both descriptions: fact 5 is a separate weakness. If a later page of a multi-page answer fails upstream, the route returns the partial records as a success. Neither evaluator described it and no one observed it, so I have not rated it. It deserves its own entry and its own rating.
+Rating (the supported part only: the route reports an unknown town as an empty success, reachable only through a hand-built address)
+Severity: 1
+
+Main factor: frequency. A homebuyer using the page cannot produce this input, because the menu only offers valid towns. Someone who hand-edits the data address gets an empty success where a clear "unknown town" error would be more accurate. It is a small correctness flaw in the route. It causes no wrong decision on the normal path, and the page's real failure and empty states are distinct and recoverable.
+Evidence that would move the rating: whether any path a visitor can actually use can send an unknown town to the route. Examples are a bookmarked or shared link with a stale town value, or a URL parameter the page reads. If such a path exists and the page then shows "no transactions" as if it were true, I would rate it 2. If the route is confirmed private, with no such path, I would rate it 0.
+```
+
+**Run 2, answer:**
+
+```
+What the facts support
+* Evaluator B:
+   * Supported: the route does return 200 with `"ok":true,"total":0` for a non-existent town (fact 1). It is indistinguishable from a real town with no sales, so "wrong input reported as success" is accurate at the route level.
+   * Not supported: any user-facing consequence. The town menu offers only real towns (fact 2), so a visitor reaches this only by hand-editing the data-route address.
+* Evaluator A:
+   * Not supported: the claim that the empty or error state is generic. The page has separate messages, each with its own recovery button, for refusal, unreachable and no-match (fact 3). A no-match search also gets specific suggestions (fact 4).
+   * Observed vs. imagined: the empty-result case A says they searched for was observed, and it contradicts A's claim. The failure part ("considered what would happen if the source failed") was imagined. No upstream failure was seen, and the health check passed throughout (fact 6).
+* Neither evaluator described fact 5. A later upstream page failing and the route returning partial records as a complete success is real in the code. It is a separate, unobserved problem. I have left it out of the rating.
+
+1. Severity rating
+Severity: 1
+2. Main factor: frequency. A real visitor cannot reach the invalid-town response through the interface, so in normal use nobody meets it. Anyone who edits the address by hand still gets an empty result, which is close to what they would expect from a made-up town, and they lose nothing. The failures a visitor can actually meet already have distinct, recoverable messages. This is borderline 0 and 1, and I chose 1 only because the route does report a bad input as a success.
+3. Evidence that would move it up to 2: an observed case where the page shows a truncated multi-page answer as complete (fact 5), or where a real visitor gets a misleading "no transactions" result from a bad parameter. Either would show users being misled by a false success.
+```
+
+What I did: I accepted 1. Both runs found my description rested on
+something imagined, and the page's separate refused, unreachable and empty
+messages contradict it. Both also raised something neither evaluator
+described: a later page of a multi-page answer failing upstream is returned
+as a complete success. I have not repaired that yet.
+
+### Finding: the loading counter (me 3, ST 2)
+
+[PASTE PROMPT 1 AND ITS ANSWER HERE]

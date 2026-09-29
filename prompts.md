@@ -214,7 +214,7 @@ Turned down: the extra "Now showing" line under the heading (far from the number
   resale flat transaction data…". A few seconds later it changes to 6,970.
 - Heuristic: 1.
 - Screen or system: screen.
-- Severity: 2 (ST), 3 (me). Arbiter: [N].
+- Severity: 2 (ST), 3 (me). Arbiter: 2.
 - Repair: none given by ST. Mine was a submit button that says "Loading
   transactions…".
 
@@ -519,4 +519,94 @@ as a complete success. I have not repaired that yet.
 
 ### Finding: the loading counter (me 3, ST 2)
 
-[PASTE PROMPT 1 AND ITS ANSWER HERE]
+Prompt 1, as sent (Evaluator A is ST's finding 2 and Evaluator B is my
+finding 1; the arbiter was not told this):
+
+```
+ROLE: You are an independent usability arbiter. Two evaluators described the
+same problem in a web product and rated its severity differently. You have
+not seen their ratings and will not be told them. Rate the problem yourself,
+from the evidence below.
+
+CONTEXT:
+- Product: HDB Resale Price Explorer, https://problemset3new.vercel.app/
+- Who it is for, and what it does for them: a Singapore homebuyer or renter
+  uses it to compare HDB resale transactions by town and flat type and
+  understand how resale prices differ and have changed since 2017.
+- Version being rated: the one the evaluators reviewed on 27 September 2026.
+  It has since been changed; rate the reviewed version, not the current one.
+  Screenshot of the reviewed version while loading:
+  https://github.com/kevinch10/problemset3new/blob/main/ps4/before-1a-explore-loading.png
+
+- Evaluator A wrote: "Right after the page opens, the counter says '0
+  matching transactions' while a message below still says 'Loading live HDB
+  resale flat transaction data…'. A few seconds later the counter changes to
+  6,970." Heuristic named: 1, Visibility of System Status.
+- Evaluator B wrote: "I selected my filters and requested HDB resale
+  information. While the application was waiting for the data, it was not
+  always obvious what was happening or whether I needed to press the button
+  again." Heuristic named: 1, Visibility of System Status.
+
+- Facts about the reviewed version:
+  1. There is no search or submit button. Data loads by itself when the page
+     opens and whenever the town or flat type changes.
+  2. While data loads, the top of the filter panel reads "0 matching
+     transactions". Below the filters, a separate panel reads "Loading live
+     HDB resale flat transaction data from data.gov.sg..." and "Querying the
+     official HDB resale dataset via serverless function at /api/hdb." The
+     summary figures, chart and list are hidden until the data arrives.
+  3. How long it lasts: under a second to a few seconds when the answer is
+     cached. In uncached tests on 29 September 2026, about 7 seconds for the
+     default view (Tampines, 4 Room) and about 18 seconds for all towns.
+  4. It happens on the first visit and on each change of town or flat type
+     whose data has not been loaded before in that visit.
+  5. Once the data arrives, the counter shows the correct number.
+
+GOAL:
+1. Say which parts of each evaluator's description the facts support, and
+   which they do not.
+2. Rate the problem's severity on this scale:
+   0 = not a usability problem;
+   1 = cosmetic, fix only if there is time;
+   2 = minor, low priority;
+   3 = major, important to fix, high priority;
+   4 = catastrophe, must be fixed before release.
+3. Name the main factor behind your rating (frequency, impact or
+   persistence) and explain it in two or three sentences, from the user's
+   point of view.
+4. Say what single piece of evidence would move your rating up or down by
+   one point.
+
+OUTPUT: The four answers above as a numbered list, with your rating on its
+own line as "Severity: N". Then stop.
+
+GUARDRAILS: Do not guess what the evaluators rated. Do not average two
+imagined ratings. Rate only what the facts show. Where a description claims
+something the facts do not support, say so and leave it out of your rating.
+```
+
+Run in a fresh chat, 29 September 2026. It rated 2.
+
+**Answer:**
+
+```
+1. What the facts support
+   * Evaluator A: mostly supported.
+      * Facts 2 and 5 support the "0 matching transactions" counter shown alongside the loading message, and the later change to the correct number. Fact 5 does not confirm the figure 6,970, but it doesn't contradict it either.
+      * "A few seconds" understates the wait. Fact 3 gives about 7 seconds for the default view and about 18 seconds for all towns when the data is uncached.
+      * The heuristic label is a partial fit. The product does show a loading message (fact 2), so status is not invisible. The defect is that the counter contradicts that message.
+   * Evaluator B: only partly supported.
+      * Not supported: "requested" and "press the button again". Fact 1 says there is no search or submit button, and data loads automatically. The idea of pressing a button again has no basis in this version.
+      * Supported: a wait exists after a filter change (facts 3 and 4), and the results are hidden until it ends (fact 2).
+      * Unsupported: that the wait was "not obvious". Fact 2 shows an explicit loading panel. The facts don't say whether it was noticeable, for example whether it sat below the fold. B's claim is therefore unverified, and I have left it out of my rating.
+2. Rating (based only on the supported parts: a misleading "0" counter beside a loading message, during waits of about 1 to 18 seconds)
+Severity: 2
+3. Main factor: impact. The counter is wrong for a moment, but a loading message on the same page explains that data is on its way. It corrects itself with no action from the user, and no data is lost. The most likely harm is that someone reads "0 matching transactions" as "no results for my filters" and briefly doubts the tool, or leaves during an 18-second wait. Frequency is high, since it happens on the first visit and on every uncached filter change. But the low impact and short duration keep it a minor problem.
+4. Evidence that would move the rating: an observation of what users do during the wait, especially the all-towns case. If several read the "0" as "no results", changed their filters or reloaded, or abandoned the page, I would rate it 3. If none of them misread the counter, I would rate it 1.
+```
+
+What I did: I accepted 2. The arbiter found no basis for my "press the
+button again", since the page has no button, and pointed out that the page
+already shows a loading panel: the defect is the counter contradicting it.
+That is the problem repair 5 fixes. The arbiter was run after repair 5 was
+built, and its rating did not change the repair.

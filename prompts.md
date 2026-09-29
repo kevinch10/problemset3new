@@ -201,7 +201,7 @@ which filter is on.
 
 **My decision (one line to the agent):** Build repair 4: rewrite the heading sentence without "every" and put the active filter in the summary heading, in the dropdowns' wording; no "Now showing" line. Change nothing else.
 
-Turned down: the extra "Now showing" line under the heading (far from the numbers on a phone, and it adds height). Commit 3241fa7.
+Turned down: the extra "Now showing" line under the heading (far from the numbers on a phone, and it adds height). Commit 3241fa7, plus follow-up 3f68195 for the same "Every" promise in the navbar tagline, found in the before-screenshots.
 
 ---
 

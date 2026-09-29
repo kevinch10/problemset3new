@@ -702,7 +702,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
               {summaryCount > 0 ? formatSGD(summaryMedian) : '—'}
             </div>
             <div className="text-[11px] sm:text-xs text-slate-500 mt-1">
-              Midpoint valuation for selected flats
+              Median recorded resale price for the selected filters
             </div>
             {useRecentWindow && summaryCount < transactionCount && (
               <div id="summary-median-full-period" className="text-[11px] text-slate-500 mt-0.5">

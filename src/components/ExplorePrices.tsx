@@ -60,6 +60,13 @@ interface ExplorePricesProps {
   onResetFilters?: () => void;
 }
 
+// "2026-09" minus 11 months -> "2025-10": the first month of a 12-month window ending at `month`
+const twelveMonthWindowStart = (month: string) => {
+  const [y, m] = month.split('-').map(Number);
+  const index = y * 12 + (m - 1) - 11;
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, '0')}`;
+};
+
 export const ExplorePrices: React.FC<ExplorePricesProps> = ({
   transactions,
   selectedTown,
@@ -237,6 +244,27 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
   }, [filteredTransactions]);
   const periodLabel =
     oldestMonth && newestMonth ? `${formatMonth(oldestMonth)} – ${formatMonth(newestMonth)}` : '';
+
+  // Summary cards: with all years selected, every card uses the latest 12 months so the row
+  // reads as current prices; the median across the whole period is shown beneath it
+  const useRecentWindow = selectedYear === 'ALL' && !!newestMonth;
+  const recentWindowStart = useRecentWindow ? twelveMonthWindowStart(newestMonth) : '';
+  const summaryPrices = useMemo(
+    () =>
+      useRecentWindow
+        ? filteredTransactions
+            .filter((t) => t.transactionMonth >= recentWindowStart)
+            .map((t) => t.resalePrice)
+        : prices,
+    [filteredTransactions, useRecentWindow, recentWindowStart, prices]
+  );
+  const summaryCount = summaryPrices.length;
+  const summaryMedian = useMemo(() => calculateMedian(summaryPrices), [summaryPrices]);
+  const summaryHighest = summaryCount ? Math.max(...summaryPrices) : 0;
+  const summaryLowest = summaryCount ? Math.min(...summaryPrices) : 0;
+  const summaryPeriodLabel = useRecentWindow
+    ? `last 12 months, ${formatMonth(recentWindowStart)} – ${formatMonth(newestMonth)}`
+    : periodLabel;
 
   // The route caps all-towns requests at the newest sales; say so rather than
   // presenting them as every sale since 2017
@@ -655,8 +683,8 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
           <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
             Key Summary Information
           </h3>
-          <span className="text-xs text-slate-500 font-medium">
-            Based on {transactionCount} recorded transactions{periodLabel ? ` (${periodLabel})` : ''}
+          <span id="summary-basis" className="text-xs text-slate-500 font-medium">
+            Based on {summaryCount} recorded transactions{summaryPeriodLabel ? ` (${summaryPeriodLabel})` : ''}
           </span>
         </div>
 
@@ -671,11 +699,16 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
               <DollarSign className="w-4 h-4 text-slate-400" />
             </div>
             <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {transactionCount > 0 ? formatSGD(medianPrice) : '—'}
+              {summaryCount > 0 ? formatSGD(summaryMedian) : '—'}
             </div>
             <div className="text-[11px] sm:text-xs text-slate-500 mt-1">
               Midpoint valuation for selected flats
             </div>
+            {useRecentWindow && summaryCount < transactionCount && (
+              <div id="summary-median-full-period" className="text-[11px] text-slate-500 mt-0.5">
+                Median across {periodLabel}: {formatSGD(medianPrice)}
+              </div>
+            )}
           </div>
 
           {/* Number of Transactions */}
@@ -688,7 +721,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
               <Layers className="w-4 h-4 text-slate-400" />
             </div>
             <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {transactionCount}
+              {summaryCount}
             </div>
             <div className="text-[11px] sm:text-xs text-slate-500 mt-1">
               Recorded resale transactions
@@ -705,7 +738,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
               <ArrowUpRight className="w-4 h-4 text-rose-500" />
             </div>
             <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {transactionCount > 0 ? formatSGD(highestPrice) : '—'}
+              {summaryCount > 0 ? formatSGD(summaryHighest) : '—'}
             </div>
             <div className="text-[11px] sm:text-xs text-slate-500 mt-1">
               Top recorded sale in filter
@@ -722,7 +755,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
               <ArrowDownRight className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {transactionCount > 0 ? formatSGD(lowestPrice) : '—'}
+              {summaryCount > 0 ? formatSGD(summaryLowest) : '—'}
             </div>
             <div className="text-[11px] sm:text-xs text-slate-500 mt-1">
               Most accessible entry sale

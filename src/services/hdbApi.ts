@@ -68,17 +68,31 @@ export function mapRecordToTransaction(row: ApiHdbRecord, index: number): HDBTra
   };
 }
 
+// How much of the dataset one answer from /api/hdb covers
+export interface DataCoverage {
+  total: number; // matching records in the whole dataset
+  returned: number; // records actually sent to the screen
+  partial: boolean; // true when returned < total (the all-towns cap)
+  oldestMonth: string | null;
+  newestMonth: string | null;
+}
+
+export interface LiveTransactionsResult {
+  transactions: HDBTransaction[];
+  total: number;
+  coverage: DataCoverage;
+}
+
 // In-memory cache to prevent redundant re-fetching for already-loaded town and flat-type queries
-const cache = new Map<string, HDBTransaction[]>();
+const cache = new Map<string, LiveTransactionsResult>();
 
 export async function fetchLiveTransactions(
   town?: string,
   flatType?: string
-): Promise<{ transactions: HDBTransaction[]; total: number }> {
+): Promise<LiveTransactionsResult> {
   const cacheKey = `${town || 'ALL'}__${flatType || 'ALL'}`;
   if (cache.has(cacheKey)) {
-    const cached = cache.get(cacheKey)!;
-    return { transactions: cached, total: cached.length };
+    return cache.get(cacheKey)!;
   }
 
   const params = new URLSearchParams();
@@ -169,11 +183,21 @@ export async function fetchLiveTransactions(
   const rawRecords: ApiHdbRecord[] = Array.isArray(data?.records) ? data.records : [];
   const transactions = rawRecords.map((r, i) => mapRecordToTransaction(r, i));
 
-  // Save to cache
-  cache.set(cacheKey, transactions);
-
-  return {
+  const total = Number(data?.total) || transactions.length;
+  const result: LiveTransactionsResult = {
     transactions,
-    total: Number(data?.total) || transactions.length,
+    total,
+    coverage: {
+      total,
+      returned: Number(data?.returned) || transactions.length,
+      partial: data?.partial === true || transactions.length < total,
+      oldestMonth: data?.oldestMonth ?? null,
+      newestMonth: data?.newestMonth ?? null,
+    },
   };
+
+  // Save to cache
+  cache.set(cacheKey, result);
+
+  return result;
 }

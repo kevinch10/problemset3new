@@ -4,7 +4,7 @@ import { Navbar } from './components/Navbar';
 import { ExplorePrices } from './components/ExplorePrices';
 import { CompareTowns } from './components/CompareTowns';
 import { TransactionDetail } from './components/TransactionDetail';
-import { fetchLiveTransactions, HdbFetchError } from './services/hdbApi';
+import { fetchLiveTransactions, HdbFetchError, DataCoverage } from './services/hdbApi';
 import { DataStatus } from './components/DataStateMessage';
 import { DisqusComments } from './components/DisqusComments';
 
@@ -18,6 +18,7 @@ export default function App() {
   const [allTransactionsPool, setAllTransactionsPool] = useState<HDBTransaction[]>([]);
   const [dataStatus, setDataStatus] = useState<DataStatus>('loading');
   const [fetchError, setFetchError] = useState<HdbFetchError | null>(null);
+  const [coverage, setCoverage] = useState<DataCoverage | null>(null);
 
   // Fetch live data for Explore Prices screen from /api/hdb
   const loadData = useCallback(async (town: string, flatType: string) => {
@@ -25,6 +26,7 @@ export default function App() {
     setFetchError(null);
     try {
       const res = await fetchLiveTransactions(town, flatType);
+      setCoverage(res.coverage);
       if (res.transactions.length === 0) {
         setDataStatus('empty');
         setTransactions([]);
@@ -124,6 +126,7 @@ export default function App() {
               onSelectTransaction={handleSelectTransaction}
               dataStatus={dataStatus}
               fetchError={fetchError}
+              coverage={coverage}
               onRetry={handleRetry}
               onResetFilters={handleResetFilters}
             />

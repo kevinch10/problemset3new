@@ -53,6 +53,10 @@ export default async function handler(req, res) {
     let requestUrl = `${BASE_API_URL}?resource_id=${DATASTORE_RESOURCE_ID}&limit=10000`;
     if (Object.keys(filters).length > 0) {
       requestUrl += `&filters=${encodeURIComponent(JSON.stringify(filters))}`;
+    } else {
+      // Unfiltered (all of Singapore) is capped below, so take the newest sales first:
+      // the cap then cuts off the earliest years, not the present.
+      requestUrl += `&sort=${encodeURIComponent('month desc')}`;
     }
 
     // Initial upstream fetch
@@ -157,11 +161,18 @@ export default async function handler(req, res) {
       };
     });
 
+    // Tell the screen how much of the dataset this answer covers, so a capped answer
+    // is never presented as the whole of 2017 to present
+    const months = cleanRecords.map((r) => r.month).filter(Boolean).sort();
+
     return sendJson(res, 200, {
       ok: true,
       status: 'ok',
       total,
       returned: cleanRecords.length,
+      partial: cleanRecords.length < total,
+      oldestMonth: months[0] || null,
+      newestMonth: months[months.length - 1] || null,
       records: cleanRecords,
     });
   } catch (error) {

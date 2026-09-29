@@ -85,6 +85,16 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({
 
   const currentCopy = timeframeLabels[timeframe];
 
+  // Name the years the yearly view actually covers (the capped all-towns answer starts after 2017)
+  if (timeframe === '2017_2026' && trendPoints.length > 0) {
+    const firstYear = trendPoints[0].key;
+    const lastYear = trendPoints[trendPoints.length - 1].key;
+    const span = firstYear === lastYear ? firstYear : `${firstYear}–${lastYear}`;
+    currentCopy.title = `${span} Resale Price Trend (Yearly)`;
+    currentCopy.subtitle = `Annual median transaction prices, ${span}`;
+    currentCopy.trendSuffix = `since ${firstYear}`;
+  }
+
   // Helper render for Timeframe Selector Toolbar
   const renderTimeframeSelector = (idSuffix: string) => (
     <div
@@ -103,7 +113,7 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({
             : 'text-slate-600 hover:text-slate-900'
         }`}
       >
-        2017–2026
+        Yearly
       </button>
 
       <button

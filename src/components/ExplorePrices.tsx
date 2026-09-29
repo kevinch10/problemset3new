@@ -36,7 +36,7 @@ import {
 } from '../utils/calculations';
 import { PriceTrendChart } from './PriceTrendChart';
 import { DataStateMessage, DataStatus } from './DataStateMessage';
-import { HdbFetchError } from '../services/hdbApi';
+import { HdbFetchError, DataCoverage } from '../services/hdbApi';
 import { SearchableDropdown } from './SearchableDropdown';
 import {
   parseMultiSearchQuery,
@@ -55,6 +55,7 @@ interface ExplorePricesProps {
   onSelectTransaction: (tx: HDBTransaction) => void;
   dataStatus?: DataStatus;
   fetchError?: HdbFetchError | null;
+  coverage?: DataCoverage | null;
   onRetry?: () => void;
   onResetFilters?: () => void;
 }
@@ -68,6 +69,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
   onSelectTransaction,
   dataStatus = 'success',
   fetchError = null,
+  coverage = null,
   onRetry,
   onResetFilters,
 }) => {
@@ -222,6 +224,23 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
   const highestPrice = useMemo(() => (prices.length ? Math.max(...prices) : 0), [prices]);
   const lowestPrice = useMemo(() => (prices.length ? Math.min(...prices) : 0), [prices]);
   const transactionCount = filteredTransactions.length;
+
+  // Period actually covered by the filtered sales (not assumed to be 2017 – present)
+  const { oldestMonth, newestMonth } = useMemo(() => {
+    let oldest = '';
+    let newest = '';
+    for (const tx of filteredTransactions) {
+      if (!oldest || tx.transactionMonth < oldest) oldest = tx.transactionMonth;
+      if (!newest || tx.transactionMonth > newest) newest = tx.transactionMonth;
+    }
+    return { oldestMonth: oldest, newestMonth: newest };
+  }, [filteredTransactions]);
+  const periodLabel =
+    oldestMonth && newestMonth ? `${formatMonth(oldestMonth)} – ${formatMonth(newestMonth)}` : '';
+
+  // The route caps all-towns requests at the newest sales; say so rather than
+  // presenting them as every sale since 2017
+  const showPartialNotice = !!coverage?.partial && dataStatus === 'success';
 
   const isFiltered =
     selectedTown !== 'ALL' ||
@@ -615,13 +634,29 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
         transactionCount === 0) ? null : (
         <>
           {/* Key Summary Information - 4 Metrics */}
+          {showPartialNotice && coverage && (
+            <div
+              id="partial-coverage-notice"
+              role="status"
+              className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-xs sm:text-sm text-amber-950"
+            >
+              <strong>All towns shows the latest {coverage.returned.toLocaleString('en-SG')} of{' '}
+              {coverage.total.toLocaleString('en-SG')} recorded sales</strong>
+              {coverage.oldestMonth && coverage.newestMonth
+                ? ` (${formatMonth(coverage.oldestMonth)} – ${formatMonth(coverage.newestMonth)})`
+                : ''}
+              . Every sale since 2017 for all of Singapore is too large to load at once, so earlier
+              years are left out of these figures. Choose a town to see its full history from 2017.
+            </div>
+          )}
+
           <section aria-label="Key Summary Information">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
             Key Summary Information
           </h3>
           <span className="text-xs text-slate-500 font-medium">
-            Based on {transactionCount} recorded transactions ({selectedYear === 'ALL' ? '2017 – Present' : selectedYear})
+            Based on {transactionCount} recorded transactions{periodLabel ? ` (${periodLabel})` : ''}
           </span>
         </div>
 
@@ -711,7 +746,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 id="recent-transactions-heading" className="text-base sm:text-lg font-bold text-slate-900">
-                Resale Flat Transactions (2017 – Present)
+                Resale Flat Transactions{periodLabel ? ` (${periodLabel})` : ''}
               </h3>
               <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
                 {sortedTransactions.length}
@@ -724,7 +759,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
                 </>
               ) : (
                 <>
-                  Showing <strong>{sortedTransactions.length}</strong> recorded flats from 2017 until present time.
+                  Showing <strong>{sortedTransactions.length}</strong> recorded flats{periodLabel ? `, ${periodLabel}` : ''}.
                 </>
               )}{' '}
               Tap any transaction to inspect details & comparable sales.

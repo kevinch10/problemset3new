@@ -533,7 +533,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
         </div>
 
         {/* Dropdown Filters Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Town Filter with integrated top search inside dropdown */}
           <div>
             <SearchableDropdown
@@ -570,37 +570,6 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
             </select>
           </div>
 
-          {/* Sort Order */}
-          <div>
-            <label htmlFor="select-sort" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Sort Transactions By
-            </label>
-            <select
-              id="select-sort"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="w-full h-11 px-3.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all cursor-pointer"
-            >
-              <optgroup label="Transaction Date">
-                <option value="date_desc">📅 Most Recent Month First</option>
-                <option value="date_asc">📅 Oldest Month First (from 2017)</option>
-              </optgroup>
-              <optgroup label="Remaining Lease">
-                <option value="lease_desc">⏳ Remaining Lease: Longest First (Newest)</option>
-                <option value="lease_asc">⏳ Remaining Lease: Shortest First</option>
-              </optgroup>
-              <optgroup label="Resale Price">
-                <option value="price_asc">💰 Price: Low to High (Cheapest First)</option>
-                <option value="price_desc">💰 Price: High to Low (Most Expensive)</option>
-                <option value="psm_asc">📊 Price / Sqm: Lowest First</option>
-                <option value="psm_desc">📊 Price / Sqm: Highest First</option>
-              </optgroup>
-              <optgroup label="Floor Area">
-                <option value="area_desc">📐 Floor Area: Largest First</option>
-                <option value="area_asc">📐 Floor Area: Smallest First</option>
-              </optgroup>
-            </select>
-          </div>
         </div>
 
         {/* Flat Type Filter Chips */}
@@ -827,22 +796,22 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
                 className="h-9 px-3 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 shadow-2xs focus:ring-2 focus:ring-slate-900 focus:outline-hidden cursor-pointer"
               >
                 <optgroup label="Transaction Date">
-                  <option value="date_desc">📅 Most Recent Month First</option>
-                  <option value="date_asc">📅 Oldest Month First (from 2017)</option>
+                  <option value="date_desc">Most Recent</option>
+                  <option value="date_asc">Oldest First</option>
                 </optgroup>
                 <optgroup label="Remaining Lease">
-                  <option value="lease_desc">⏳ Remaining Lease: Longest First (Newest)</option>
-                  <option value="lease_asc">⏳ Remaining Lease: Shortest First</option>
+                  <option value="lease_desc">Longest Lease</option>
+                  <option value="lease_asc">Shortest Lease</option>
                 </optgroup>
                 <optgroup label="Resale Price">
-                  <option value="price_asc">💰 Price: Low to High (Cheapest)</option>
-                  <option value="price_desc">💰 Price: High to Low (Most Expensive)</option>
-                  <option value="psm_asc">📊 Price / Sqm: Lowest First</option>
-                  <option value="psm_desc">📊 Price / Sqm: Highest First</option>
+                  <option value="price_asc">Lowest Price</option>
+                  <option value="price_desc">Highest Price</option>
+                  <option value="psm_asc">Lowest $/sqm</option>
+                  <option value="psm_desc">Highest $/sqm</option>
                 </optgroup>
                 <optgroup label="Floor Area">
-                  <option value="area_desc">📐 Floor Area: Largest First</option>
-                  <option value="area_asc">📐 Floor Area: Smallest First</option>
+                  <option value="area_desc">Largest Area</option>
+                  <option value="area_asc">Smallest Area</option>
                 </optgroup>
               </select>
             </div>
@@ -853,7 +822,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
         {hasMatches && (
           <div className="flex flex-wrap items-center gap-1.5 pt-2 pb-1" role="toolbar" aria-label="Quick sort options">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
-              Quick Sort:
+              Quick Sort (updates Sort by):
             </span>
             <button
               type="button"

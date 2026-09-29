@@ -154,12 +154,14 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          Select Year:
+          Single year:
         </button>
         <div className="relative">
           <select
             id={`designated-year-dropdown${idSuffix}`}
-            value={designatedYear}
+            // Show a year only while the single-year view is active, so the chart never
+            // displays two different time settings at once
+            value={timeframe === 'designated_year' ? designatedYear : ''}
             onChange={(e) => {
               setDesignatedYear(e.target.value);
               setTimeframe('designated_year');
@@ -171,6 +173,9 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({
                 : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
             }`}
           >
+            <option value="" disabled className="text-slate-500 bg-white">
+              Pick a year
+            </option>
             {availableYears.map((yr) => (
               <option key={yr} value={yr} className="text-slate-900 bg-white">
                 {yr}

@@ -284,7 +284,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
           Explore HDB Resale Prices (2017 – Present)
         </h2>
         <p className="text-sm sm:text-base text-slate-600 mt-1">
-          Every resale flat transaction recorded from January 2017 until present time. Filter by town, year, and flat type to analyze valuations, price movements, and comparable sales.
+          Recorded HDB resale transactions from data.gov.sg. Filter by town, year and flat type to compare prices, price movements and comparable sales.
         </p>
       </div>
 
@@ -682,6 +682,11 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
             Key Summary Information
+            <span id="summary-filter" className="ml-2 normal-case tracking-normal font-semibold text-slate-600">
+              {selectedTown === 'ALL' ? 'All Towns across Singapore' : selectedTown} •{' '}
+              {selectedFlatType === 'ALL' ? 'All Flat Types' : selectedFlatType} •{' '}
+              {selectedYear === 'ALL' ? 'All Years' : selectedYear}
+            </span>
           </h3>
           <span id="summary-basis" className="text-xs text-slate-500 font-medium">
             Based on {summaryCount} recorded transactions{summaryPeriodLabel ? ` (${summaryPeriodLabel})` : ''}

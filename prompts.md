@@ -325,6 +325,65 @@ Turned down: also hiding the picker when the Transaction Year filter sets a year
 
 ---
 
+## Repair 8: All Towns says "no sales" for a year it has not loaded
+
+Added after the seven repairs were live. I asked the agent "is the product
+better now after the revision?", and its check of the live address found
+this problem. I then ran the sceptical-reviewer prompt on it.
+
+**Finding (SS, finding 1, as it still stood after repair 1).**
+- Where: Explore Prices, TOWN / LOCATION "All Towns across Singapore",
+  TRANSACTION YEAR set to a year before the loaded period (e.g. 2019).
+- What happens: the coverage notice disappears and the page says "No
+  official resale transactions recorded in the data.gov.sg dataset match
+  your query" and "No HDB resale transactions were found matching your
+  selected criteria", which is false.
+- Heuristic: 1 (SS's finding); the false message is also 9.
+- Screen or system: screen. The system already sends oldestMonth and
+  newestMonth; the screen ignores them when a filter returns nothing.
+- Severity: 4 (SS's finding 1).
+- Repair (SS): "the page says plainly which period and how many sales they
+  are based on". After repair 1 that is still false in this case.
+
+**Evidence:** found by the agent on the live address on 29 September 2026;
+no groupmate raised this case.
+
+**Repair I propose:** the page never says there are no sales when the year
+is only outside what was loaded, and names what was loaded instead.
+
+**Arguments**
+1. It is a gap in repair 1, so it serves SS's finding, but it was found by
+   the agent right after I had marked heuristic 9 as my product's worst.
+   That is the moment to suspect confirmation. The evidence holds anyway:
+   the message is false, and that was checked on the live address.
+2. The problem is on the screen, and so is the repair. A system
+   alternative (the route fetching the chosen year for All Towns) would
+   show 2019 for real, but it is a larger change to a route that is already
+   slow (about 16 seconds per page).
+3. It could break 8: ST already found the no-results screen saying "No
+   results found." four times. The repair must replace those messages in
+   this case, not add another.
+4. Smallest alternative: disable out-of-range years in the Transaction Year
+   menu (prevention, heuristic 5). But a year can also be set by typing
+   "2019" in the search, or by switching from a town to All Towns with 2019
+   set, so an explanation is needed anyway.
+5. To check it on the live address:
+   - All Towns + 2019 must name the loaded period, say how to see 2019, and
+     never claim there are no sales.
+   - Tampines + 2019 must still show 2019.
+   - A search for "zzzz" must still say "No results found."
+
+**My decision (one line to the agent):** Build it as "explain in place":
+when All Towns is capped and the chosen year is outside the loaded months,
+replace the no-results messages with one message naming the loaded period,
+with a way back to all loaded months. Change nothing else.
+
+Turned down: also disabling years in the menu (it doesn't cover the search
+and town-switch paths); fetching the year in the route (a larger, slower
+change). Commit c429abc.
+
+---
+
 ## Blind-arbiter exchanges
 
 [PASTE EACH BLIND-ARBITER PROMPT AND ITS ANSWER HERE: the loading counter

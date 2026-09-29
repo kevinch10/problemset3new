@@ -270,6 +270,18 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
   // presenting them as every sale since 2017
   const showPartialNotice = !!coverage?.partial && dataStatus === 'success';
 
+  // With all towns capped at the newest sales, a year before the loaded period matches nothing.
+  // Say the year was not loaded, instead of saying no sales exist.
+  const loadedFromYear = coverage?.oldestMonth?.slice(0, 4) ?? '';
+  const loadedToYear = coverage?.newestMonth?.slice(0, 4) ?? '';
+  const yearOutsideCoverage =
+    showPartialNotice &&
+    !!loadedFromYear &&
+    selectedYear !== 'ALL' &&
+    filteredTransactions.length === 0 &&
+    (selectedYear < loadedFromYear || selectedYear > loadedToYear);
+  const showNoResults = !hasMatches && !yearOutsideCoverage;
+
   const isFiltered =
     selectedTown !== 'ALL' ||
     selectedFlatType !== 'ALL' ||
@@ -301,7 +313,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            {!hasMatches && (
+            {showNoResults && (
               <span
                 id="filter-card-no-results-error"
                 className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-lg flex items-center gap-1"
@@ -350,7 +362,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
             </label>
 
             {/* Error function in red text on the top right if no match */}
-            {!hasMatches ? (
+            {showNoResults ? (
               <div
                 id="search-header-error-top-right"
                 className="flex items-center gap-1.5 text-right"
@@ -360,6 +372,10 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
                   No results found.
                 </span>
               </div>
+            ) : yearOutsideCoverage ? (
+              <span id="matching-count" className="text-xs font-semibold text-amber-800">
+                {selectedYear} not loaded for all towns
+              </span>
             ) : dataStatus === 'loading' ? (
               <span id="matching-count" className="text-xs font-semibold text-slate-500">
                 Loading transactions…
@@ -403,7 +419,7 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
           {/* ======================================================== */}
           {/* No Match Error Box with Reference to Quote & Close Suggestions */}
           {/* ======================================================== */}
-          {!hasMatches && (
+          {showNoResults && (
             <div
               id="no-match-feedback-panel"
               role="region"
@@ -621,11 +637,41 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
         />
       )}
 
-      {(dataStatus === 'empty' || (dataStatus === 'success' && transactionCount === 0)) && (
+      {!yearOutsideCoverage &&
+        (dataStatus === 'empty' || (dataStatus === 'success' && transactionCount === 0)) && (
         <DataStateMessage
           status="empty"
           onResetFilters={onResetFilters}
         />
+      )}
+
+      {yearOutsideCoverage && coverage && (
+        <div
+          id="year-outside-coverage-notice"
+          role="status"
+          className="bg-amber-50 border border-amber-200 rounded-2xl p-5 sm:p-6 text-sm text-amber-950 space-y-3"
+        >
+          <p className="font-bold">
+            Sales from {selectedYear} are not loaded for all towns. This does not mean there were none.
+          </p>
+          <p>
+            All towns shows the latest {coverage.returned.toLocaleString('en-SG')} of{' '}
+            {coverage.total.toLocaleString('en-SG')} recorded sales
+            {coverage.oldestMonth && coverage.newestMonth
+              ? ` (${formatMonth(coverage.oldestMonth)} – ${formatMonth(coverage.newestMonth)})`
+              : ''}
+            , because every sale since 2017 for all of Singapore is too large to load at once. To see{' '}
+            {selectedYear}, choose a town above.
+          </p>
+          <button
+            id="btn-show-loaded-years"
+            type="button"
+            onClick={() => setSelectedYear('ALL')}
+            className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            Show all loaded months
+          </button>
+        </div>
       )}
 
       {/* When loading with no records or during error states with no records, pause rendering empty charts */}

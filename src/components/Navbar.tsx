@@ -32,7 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-normal">
-                Every resale flat transaction from 2017 until present time
+                Recorded HDB resale transactions from data.gov.sg
               </p>
             </div>
           </div>

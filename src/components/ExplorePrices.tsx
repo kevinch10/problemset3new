@@ -360,8 +360,12 @@ export const ExplorePrices: React.FC<ExplorePricesProps> = ({
                   No results found.
                 </span>
               </div>
+            ) : dataStatus === 'loading' ? (
+              <span id="matching-count" className="text-xs font-semibold text-slate-500">
+                Loading transactions…
+              </span>
             ) : (
-              <span className="text-xs font-semibold text-slate-600">
+              <span id="matching-count" className="text-xs font-semibold text-slate-600">
                 {filteredTransactions.length} matching transaction
                 {filteredTransactions.length === 1 ? '' : 's'}
               </span>
